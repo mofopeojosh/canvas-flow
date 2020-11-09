@@ -1,0 +1,271 @@
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.js"></script>
+    <script src="sketch.js"></script>
+</head>
+<body>
+<main>
+</main>
+<script>
+let cards = [],
+    lines = [],
+    selected = {
+        cIndex: null,
+        lIndex: null,
+        destination: '',
+    };
+lineColor = 'grey';
+
+function setup() {
+    createCanvas(1300, 800);
+
+    cards.push(newCard(60, height / 2, 100, false));
+}
+
+function draw() {
+    background(220);
+
+    rect(0, 0, 50, 20);
+
+    cards.forEach(card => {
+        card.show();
+    });
+
+    lines.forEach(line => {
+        line.show();
+    });
+}
+
+function newCard(x, y, size, hasRect) {
+    return {
+        x: x,
+        y: y,
+        lRect: null,
+        lCircle: null,
+        size: size,
+        hasRect: hasRect,
+        circlePoint: function () {
+            const circleX = this.x + size / 2;
+            const circleY = this.y;
+            return {
+                x: circleX,
+                y: circleY,
+                r: 10
+            };
+        },
+        rectPoint: function () {
+
+            const rectX = this.x - size / 2;
+            const rectY = this.y;
+            return {
+                x: rectX,
+                y: rectY,
+                w: 10,
+                h: 30
+            };
+
+        },
+        update: function (x, y) {
+            this.x = x;
+            this.y = y;
+        },
+        show: function () {
+            push();
+            rectMode(CENTER);
+            stroke(255, 0, 0);
+            fill(255);
+            drawingContext.setLineDash([3, 3]);
+            rect(this.x, this.y, size, size, 20);
+            const circle = this.circlePoint();
+            noStroke();
+            fill(100, 100, 100);
+            ellipse(circle.x, circle.y, circle.r * 2, circle.r * 2);
+            if (this.hasRect) {
+                const rectangle = this.rectPoint();
+                rect(rectangle.x, rectangle.y, rectangle.w, rectangle.h);
+            }
+            pop();
+        },
+        isHovered: function () {
+            return (mouseX > this.x - this.size / 2 && mouseX < this.x + this.size / 2 && mouseY > this.y - this.size / 2 && mouseY < this.y + this.size / 2);
+        },
+        circleIsHovered: function () {
+            const {
+                x,
+                y,
+                r
+            } = this.circlePoint();
+            return (mouseX > x - r && mouseX < x + r && mouseY > y - r && mouseY < y + r);
+        },
+        rectIsHovered: function () {
+            const {
+                x,
+                y,
+                w,
+                h
+            } = this.rectPoint();
+            return this.hasRect ? (mouseX > x - (w / 2) && mouseX < x + (w / 2) && mouseY > y - (h / 2) && mouseY < y + (h / 2)) : false;
+
+        },
+    };
+}
+
+function newLine(x1, y1, x2, y2) {
+
+    return {
+        x1,
+        y1,
+        x2,
+        y2,
+        updateRect: function (x, y) {
+            this.x2 = x;
+            this.y2 = y;
+        },
+        updateCircle: function (x, y) {
+            this.x1 = x;
+            this.y1 = y;
+        },
+        isHovered: function (x, y) {
+            this.x1 = x;
+            this.y1 = y;
+        },
+        show: function () {
+            push();
+            stroke(100, 100, 100);
+            line(this.x1, this.y1, this.x2, this.y2);
+            pop();
+        }
+    };
+}
+
+function mousePressed() {
+
+    cards.forEach((card, index) => {
+        if (card.circleIsHovered()) {
+
+
+            if (card.lCircle == null) {
+                const {
+                    x,
+                    y
+                } = card.circlePoint();
+                lines.push(newLine(x, y, mouseX, mouseY));
+                card.lCircle = lines.length - 1;
+
+                selected.lIndex = card.lCircle;
+                selected.destination = 'rect';
+            } else {
+                selected.lIndex = card.lCircle;
+                selected.destination = 'circle';
+
+                card.lCircle = null;
+            }
+
+
+        } else if (card.rectIsHovered()) {
+
+            if (card.lRect == null) {
+                const {
+                    x,
+                    y
+                } = card.rectPoint();
+                lines.push(newLine(mouseX, mouseY, x, y));
+                card.lRect = lines.length - 1;
+
+                selected.lIndex = card.lRect;
+                selected.destination = 'circle';
+            } else {
+                selected.lIndex = card.lRect;
+                selected.destination = 'rect';
+
+                card.lRect = null;
+            }
+
+
+        } else if (card.isHovered() && index != 0) {
+            selected.cIndex = index;
+            selected.destination = 'card';
+        }
+
+
+    });
+}
+
+function mouseDragged() {
+    if (selected.destination == 'card') {
+        const card = cards[selected.cIndex];
+        cards[selected.cIndex].update(mouseX, mouseY);
+        if (cards[selected.cIndex].lRect != null) {
+            const recta = cards[selected.cIndex].rectPoint();
+            lines[cards[selected.cIndex].lRect].updateRect(recta.x, recta.y);
+        }
+        if (cards[selected.cIndex].lCircle != null) {
+            const circle = cards[selected.cIndex].circlePoint();
+            lines[cards[selected.cIndex].lCircle].updateCircle(circle.x, circle.y);
+        }
+
+    }
+    if (selected.destination == 'rect') {
+        lines[selected.lIndex].updateRect(mouseX, mouseY);
+    }
+    if (selected.destination == 'circle') {
+        lines[selected.lIndex].updateCircle(mouseX, mouseY);
+    }
+}
+
+function mouseClicked() {
+    if (mouseX > 0 && mouseX < 50 && mouseY > 0 && mouseY < 20) {
+        const size = 100;
+        const x = width / 2 + random(0, 10);
+        const y = height / 2 + random(0, 10);
+        cards.push(newCard(x, y, size, true));
+    }
+}
+
+
+function mouseReleased() {
+
+    let noDestination = true;
+    cards.forEach((destCard, index) => {
+        if (destCard.circleIsHovered() || destCard.rectIsHovered() || destCard.isHovered()) {
+
+            if (destCard.hasRect && destCard.lRect == null && selected.destination == 'rect' && destCard.lCircle != selected.lIndex) {
+                const {
+                    x,
+                    y
+                } = destCard.rectPoint();
+                destCard.lRect = selected.lIndex;
+                lines[selected.lIndex].updateRect(x, y);
+                noDestination = false;
+            }
+            if (destCard.hasRect && destCard.lCircle == null && selected.destination == 'circle' && destCard.lRect != selected.lIndex) {
+                const {
+                    x,
+                    y
+                } = destCard.circlePoint();
+                destCard.lCircle = selected.lIndex;
+                lines[selected.lIndex].updateCircle(x, y);
+                noDestination = false;
+            }
+
+        }
+
+    });
+
+    if (noDestination && selected.lIndex != null) {
+        lines.splice(selected.lIndex, 1);
+        cards.forEach((card, index) => {
+            card.lRect = card.lRect == selected.lIndex ? null : card.lRect;
+            card.lCircle = card.lCircle == selected.lIndex ? null : card.lCircle;
+        });
+    }
+
+
+    selected.destination = null;
+    selected.lIndex = null;
+    selected.cIndex = null;
+}
+
+</script>
+</body>
+</html>
