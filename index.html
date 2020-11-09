@@ -1,7 +1,6 @@
 <html>
 <head>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.js"></script>
-    <script src="sketch.js"></script>
 </head>
 <body>
 <main>
@@ -17,7 +16,7 @@ let cards = [],
 lineColor = 'grey';
 
 function setup() {
-    createCanvas(1300, 800);
+    createCanvas(750, 650);
 
     cards.push(newCard(60, height / 2, 100, false));
 }
@@ -25,7 +24,11 @@ function setup() {
 function draw() {
     background(220);
 
-    rect(0, 0, 50, 20);
+    rect(0, 0, 80, 30);
+    push();
+    fill(50);
+    text('Add a card', 10, 20)
+    pop();
 
     cards.forEach(card => {
         card.show();
@@ -44,7 +47,7 @@ function newCard(x, y, size, hasRect) {
         lCircle: null,
         size: size,
         hasRect: hasRect,
-        circlePoint: function () {
+        circlePoint: function() {
             const circleX = this.x + size / 2;
             const circleY = this.y;
             return {
@@ -53,7 +56,7 @@ function newCard(x, y, size, hasRect) {
                 r: 10
             };
         },
-        rectPoint: function () {
+        rectPoint: function() {
 
             const rectX = this.x - size / 2;
             const rectY = this.y;
@@ -65,11 +68,11 @@ function newCard(x, y, size, hasRect) {
             };
 
         },
-        update: function (x, y) {
+        update: function(x, y) {
             this.x = x;
             this.y = y;
         },
-        show: function () {
+        show: function() {
             push();
             rectMode(CENTER);
             stroke(255, 0, 0);
@@ -86,10 +89,10 @@ function newCard(x, y, size, hasRect) {
             }
             pop();
         },
-        isHovered: function () {
+        isHovered: function() {
             return (mouseX > this.x - this.size / 2 && mouseX < this.x + this.size / 2 && mouseY > this.y - this.size / 2 && mouseY < this.y + this.size / 2);
         },
-        circleIsHovered: function () {
+        circleIsHovered: function() {
             const {
                 x,
                 y,
@@ -97,7 +100,7 @@ function newCard(x, y, size, hasRect) {
             } = this.circlePoint();
             return (mouseX > x - r && mouseX < x + r && mouseY > y - r && mouseY < y + r);
         },
-        rectIsHovered: function () {
+        rectIsHovered: function() {
             const {
                 x,
                 y,
@@ -117,19 +120,19 @@ function newLine(x1, y1, x2, y2) {
         y1,
         x2,
         y2,
-        updateRect: function (x, y) {
+        updateRect: function(x, y) {
             this.x2 = x;
             this.y2 = y;
         },
-        updateCircle: function (x, y) {
+        updateCircle: function(x, y) {
             this.x1 = x;
             this.y1 = y;
         },
-        isHovered: function (x, y) {
+        isHovered: function(x, y) {
             this.x1 = x;
             this.y1 = y;
         },
-        show: function () {
+        show: function() {
             push();
             stroke(100, 100, 100);
             line(this.x1, this.y1, this.x2, this.y2);
@@ -142,6 +145,7 @@ function mousePressed() {
 
     cards.forEach((card, index) => {
         if (card.circleIsHovered()) {
+
 
 
             if (card.lCircle == null) {
@@ -214,7 +218,7 @@ function mouseDragged() {
 }
 
 function mouseClicked() {
-    if (mouseX > 0 && mouseX < 50 && mouseY > 0 && mouseY < 20) {
+    if (mouseX > 0 && mouseX < 80 && mouseY > 0 && mouseY < 30) {
         const size = 100;
         const x = width / 2 + random(0, 10);
         const y = height / 2 + random(0, 10);
@@ -265,7 +269,6 @@ function mouseReleased() {
     selected.lIndex = null;
     selected.cIndex = null;
 }
-
 </script>
 </body>
 </html>
